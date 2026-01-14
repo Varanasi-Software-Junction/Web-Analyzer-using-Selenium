@@ -6,29 +6,43 @@ from selenium.webdriver.support import expected_conditions as EC
 from stockslist import stocks
 import utilities as ut
 
+stockname = input("Enter stock name\n").strip().lower()
+stockurl = stocks.get(stockname)
 
-stockname = input("Enter stock name\n").strip()
-stockurl = stocks.get(stockname, 0)
-print(stockurl)
-if stockurl == 0:
+if not stockurl:
     print(f"{stockname} not found")
-else:
-    stockurl=stockurl.strip()
+    exit()
 
-    search = stockurl.split("/")[-1]
-    # search=f"{search.strip()}".strip()
-    print(search, stockurl)
+search = stockurl.strip().split("/")[-1]
+print("Loading:", stockurl)
 
-    driver = webdriver.Chrome()
+options = webdriver.ChromeOptions()
+options.add_argument("--headless=new")
+options.add_argument("--disable-gpu")
+
+driver = webdriver.Chrome(options=options)
+
+try:
     driver.get(stockurl)
 
     WebDriverWait(driver, 20).until(
-        lambda d: search in d.page_source)
-    # WebDriverWait(driver, 20).until(
-    # lambda d: "₹" in d.page_source)
+        lambda d: search in d.page_source
+    )
+    price_el = WebDriverWait(driver, 20).until(
+    EC.visibility_of_element_located((By.CSS_SELECTOR, '[data-testid="qsp-price"]'))
+    )
 
-    driver.quit()
+    page_source = driver.page_source  # <-- BEFORE quit
+    print("Price:", price_el.text)
 
     page_source = driver.page_source
-    print(page_source)
-    ut.saveFile(f"{stockname}{ut.today()}.txt", page_source)
+    filename=ut.getNewFileName(stockname)
+    ut.saveFile(filename, page_source)
+
+    # print("Page saved successfully")
+
+except Exception as e:
+    print("Error:", e)
+
+finally:
+    driver.quit()

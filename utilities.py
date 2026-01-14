@@ -3,9 +3,13 @@ def today():
   td=datetime.datetime.now()
   return f"{td.day}-{td.month}-{td.year}"
 
+def getNewFileName(stockname):
+  return f"{stockname}_{today()}.html"
 def saveFile(filename, data):
-  with open(filename,"w") as f:
+  with open(filename, "w", encoding="utf-8", errors="replace") as f:
     f.write(data)
+
+ 
     f.flush()
     f.close()
 def readFile(filename):
@@ -13,3 +17,6 @@ def readFile(filename):
     data=f.read()
     f.close()
     return data
+  
+def getStockPrice(stockname):
+  
